@@ -1,29 +1,41 @@
-# Proyecto Renacer - Primer herramienta útil
+import pandas as pd
+print("=== ANALISIS DESDE EXCEL ===")
 
-vehiculos = [
-    {"vin": "VIN001", "patio": "A", "fecha": "2026-06-01"},
-    {"vin": "VIN002", "patio": "A", "fecha": "2026-06-01"},
-    {"vin": "VIN003", "patio": "B", "fecha": "2026-06-02"},
-    {"vin": "VIN002", "patio": "B", "fecha": "2026-06-02"},
-    {"vin": "VIN004", "patio": "A", "fecha": "2026-06-03"},
-    {"vin": "VIN001", "paito": "C", "fecha": "2026-06-03"}
-]
-print ("=== ANALISIS DE VEHICULOS ===")
+# Leer archivo Excel
+df = pd.read_excel("vehiculos.xlsx")
 
-vistos = set()
-duplicados = []
+print("\nDatos cargados:")
+print(df)
 
-for v in vehiculos:
-    clave = v["vin"]
-    if clave in vistos:
-        duplicados.append(v)
-    else:
-        vistos.add(clave)
+# Detectar duplicados por VIN
+duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
 
-print("\nTotal de registros:", len(vehiculos))
+print("\n--- DUPLICADOS ---")
+print(duplicados)
+
+print("\n Total registros:", len(df))
 print("Duplicados encontrados:", len(duplicados))
 
-print("\n--- DETALLE DE DUPLICADOS---")
-for d in duplicados:
-    print(d)
-    
+#### REPORTE DE DUPLICADOS
+
+print("\n=== GENERANDO REPORTE ===")
+
+# Leer archivo
+df = pd.read_excel("vehiculos.xlsx")
+
+# Detectar duplicados
+duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
+
+# Crear reporte
+reporte = pd.DataFrame({
+    "Total_registros": [len(df)],
+    "Total_duplicados": [len(duplicados)]
+})
+
+# Guardar resultados en Excel
+with pd.ExcelWriter("reporte_analisis.xlsx") as writer:
+    df.to_excel(writer, sheet_name="Datos_originales", index=False)
+    duplicados.to_excel(writer, sheet_name="Duplicados", index=False)
+    reporte.to_excel(writer, sheet_name="Resumen", index=False)
+
+print("Reporte generado: reporte_analisis.xlsx")
