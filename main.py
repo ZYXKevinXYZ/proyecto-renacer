@@ -1,41 +1,35 @@
 import pandas as pd
-print("=== ANALISIS DESDE EXCEL ===")
+import sys
+import os
 
-# Leer archivo Excel
-df = pd.read_excel("vehiculos.xlsx")
+print("=== SISTEMA DE ANALISIS FLEXIBLE ===")
 
-print("\nDatos cargados:")
-print(df)
+# Pedir archivo si no viene como parámetro
+if len(sys.argv) < 2:
+    archivo_entrada = input("Escribe la ruta del archivo Excel: ")
+else:
+    archivo_entrada = sys.argv[1]
 
-# Detectar duplicados por VIN
-duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
+if not os.path.exists(archivo_entrada):
+    print("El archivo no existe:", archivo_entrada)
+    sys.exit()
 
-print("\n--- DUPLICADOS ---")
-print(duplicados)
+# Leer Excel
+df = pd.read_excel(archivo_entrada)
 
-print("\n Total registros:", len(df))
-print("Duplicados encontrados:", len(duplicados))
-
-#### REPORTE DE DUPLICADOS
-
-print("\n=== GENERANDO REPORTE ===")
-
-# Leer archivo
-df = pd.read_excel("vehiculos.xlsx")
+print("\nArchivo cargado:", archivo_entrada)
+print("Total registros:", len(df))
 
 # Detectar duplicados
 duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
 
-# Crear reporte
-reporte = pd.DataFrame({
-    "Total_registros": [len(df)],
-    "Total_duplicados": [len(duplicados)]
-})
+print("Duplicados encontrados:", len(duplicados))
 
-# Guardar resultados en Excel
-with pd.ExcelWriter("reporte_analisis.xlsx") as writer:
-    df.to_excel(writer, sheet_name="Datos_originales", index=False)
+# Generar salida
+archivo_salida = "reporte_" + os.path.basename(archivo_entrada)
+
+with pd.ExcelWriter(archivo_salida) as writer:
+    df.to_excel(writer, sheet_name="Datos", index=False)
     duplicados.to_excel(writer, sheet_name="Duplicados", index=False)
-    reporte.to_excel(writer, sheet_name="Resumen", index=False)
 
-print("Reporte generado: reporte_analisis.xlsx")
+print("\nReporte generado:", archivo_salida)
