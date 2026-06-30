@@ -1,35 +1,56 @@
 import pandas as pd
-import sys
 import os
 
-print("=== SISTEMA DE ANALISIS FLEXIBLE ===")
+def cargar_archivo():
+    ruta = input("Ingresa la ruta del archivo Excel: ")
 
-# Pedir archivo si no viene como parámetro
-if len(sys.argv) < 2:
-    archivo_entrada = input("Escribe la ruta del archivo Excel: ")
-else:
-    archivo_entrada = sys.argv[1]
+    if not os.path.exists(ruta):
+        print("❌ Archivo no encontrado")
+        return None, None
 
-if not os.path.exists(archivo_entrada):
-    print("El archivo no existe:", archivo_entrada)
-    sys.exit()
+    df = pd.read_excel(ruta)
+    return df, ruta
 
-# Leer Excel
-df = pd.read_excel(archivo_entrada)
 
-print("\nArchivo cargado:", archivo_entrada)
-print("Total registros:", len(df))
+def analizar(df):
+    print("\n=== ANALISIS ===")
+    print("Total registros:", len(df))
+    print("Columnas:", list(df.columns))
 
-# Detectar duplicados
-duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
+    duplicados = df[df.duplicated(subset=["VIN"], keep=False)]
+    print("Duplicados:", len(duplicados))
 
-print("Duplicados encontrados:", len(duplicados))
+    return duplicados
 
-# Generar salida
-archivo_salida = "reporte_" + os.path.basename(archivo_entrada)
 
-with pd.ExcelWriter(archivo_salida) as writer:
-    df.to_excel(writer, sheet_name="Datos", index=False)
-    duplicados.to_excel(writer, sheet_name="Duplicados", index=False)
+def generar_reporte(df, duplicados, ruta):
+    nombre = "reporte_" + os.path.basename(ruta)
 
-print("\nReporte generado:", archivo_salida)
+    with pd.ExcelWriter(nombre) as writer:
+        df.to_excel(writer, sheet_name="Datos", index=False)
+        duplicados.to_excel(writer, sheet_name="Duplicados", index=False)
+
+    print("📄 Reporte generado:", nombre)
+
+
+# MENU PRINCIPAL
+while True:
+    print("\n=== SISTEMA RENACER ===")
+    print("1. Analizar archivo Excel")
+    print("2. Salir")
+
+    opcion = input("Selecciona una opción: ")
+
+    if opcion == "1":
+        df, ruta = cargar_archivo()
+
+        if df is not None:
+            duplicados = analizar(df)
+            generar_reporte(df, duplicados, ruta)
+
+    elif opcion == "2":
+        print("Saliendo...")
+        break
+
+    else:
+        print("Opción inválida")
